@@ -1,119 +1,252 @@
-!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <title>FitoScan AI | Gestión de Cultivos</title>
-    
+
+    <!-- FUENTES -->
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+
+    <!-- ICONOS -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- ESTILOS -->
     <link rel="stylesheet" href="styles.css">
+
+    <!-- SUPABASE -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="script.js"></script>
+
 </head>
+
 <body>
 
-    <header class="main-header" style="position: relative;">
-        <img src="imagenes/Logo_Udenar.png" alt="Logo Udenar" style="position: absolute; top: 20px; right: 20px; width: 60px; height: auto; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));">
+<header class="main-header" style="position: relative;">
 
-        <div class="logo-container">
-            <i class="fa-solid fa-leaf"></i>
-            <h1>FitoScan AI</h1>
+    <img
+        src="imagenes/Logo_Udenar.png"
+        alt="Logo Udenar"
+        style="
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 60px;
+        "
+    >
+
+    <div class="logo-container">
+        <i class="fa-solid fa-leaf"></i>
+        <h1>FitoScan AI</h1>
+    </div>
+
+    <p>Sistema Inteligente de Detección Fitosanitaria</p>
+
+</header>
+
+<main class="container">
+
+<!-- ================= LOGIN / REGISTRO ================= -->
+
+<section id="login-section" class="fade-in">
+
+    <!-- REGISTRO -->
+
+    <div class="card" id="register-card">
+
+        <div class="card-header">
+            <h2>Registro de Productor</h2>
+            <p>Complete sus datos para crear su perfil agrícola</p>
         </div>
-        <p>Sistema Inteligente de Detección Fitosanitaria</p>
-    </header>
 
-    <main class="container">
-        
-        <section id="login-section" class="fade-in">
-            
-            <div class="card" id="register-card">
-                <div class="card-header">
-                    <h2>Registro de Productor</h2>
-                    <p>Complete sus datos para crear su perfil agrícola</p>
-                </div>
-                
-                <form id="register-form">
-                    <div class="input-group">
-                        <i class="fa-solid fa-user"></i>
-                        <input type="text" id="reg-nombre" placeholder="Nombre Completo" required>
-                    </div>
+        <form id="register-form">
 
-                    <div class="input-group">
-                        <i class="fa-solid fa-location-dot"></i>
-                        <input type="text" id="reg-ubicacion" placeholder="Ubicación del Cultivo (Vereda/Municipio)" required>
-                    </div>
-
-                    <div class="input-group">
-                        <i class="fa-solid fa-envelope"></i>
-                        <input type="email" id="reg-email" placeholder="Correo electrónico" required>
-                    </div>
-                    
-                    <div class="input-group">
-                        <i class="fa-solid fa-lock"></i>
-                        <input type="password" id="reg-password" placeholder="Contraseña (mín. 6 caracteres)" required>
-                    </div>
-                    
-                    <div class="button-group">
-                        <button type="button" id="btn-register" class="btn btn-primary">Crear Cuenta y Perfil</button>
-                        <p class="switch-text">¿Ya tienes cuenta? <a href="#" id="show-login">Inicia Sesión</a></p>
-                    </div>
-                </form>
+            <div class="input-group">
+                <input
+                    type="text"
+                    id="reg-nombre"
+                    placeholder="Nombre Completo"
+                    required
+                >
             </div>
 
-            <div class="card hidden" id="login-card">
-                <div class="card-header">
-                    <h2>Iniciar Sesión</h2>
-                    <p>Bienvenido de nuevo, productor</p>
-                </div>
-                
-                <form id="login-form">
-                    <div class="input-group">
-                        <i class="fa-solid fa-envelope"></i>
-                        <input type="email" id="login-email" placeholder="Correo electrónico" required>
-                    </div>
-                    
-                    <div class="input-group">
-                        <i class="fa-solid fa-lock"></i>
-                        <input type="password" id="login-password" placeholder="Contraseña" required>
-                    </div>
-                    
-                    <div class="button-group">
-                        <button type="button" id="btn-login" class="btn btn-primary">Entrar al Sistema</button>
-                        <p class="switch-text">¿No tienes cuenta? <a href="#" id="show-register">Regístrate aquí</a></p>
-                    </div>
-                </form>
-            </div>
-        </section>
-
-        <section id="dashboard-section" class="fade-in" style="display: none;">
-            <div class="card dashboard-header">
-                <div class="user-info">
-                    <h2 id="welcome-user">Panel de Control</h2>
-                    <p>Realice un nuevo análisis fitosanitario</p>
-                </div>
-                <button type="button" id="btn-logout" class="btn-icon">
-                    <i class="fa-solid fa-right-from-bracket"></i> Salir
-                </button>
+            <div class="input-group">
+                <input
+                    type="text"
+                    id="reg-ubicacion"
+                    placeholder="Ubicación del Cultivo"
+                    required
+                >
             </div>
 
-            <div class="card analysis-card">
-                <div class="upload-area">
-                    <i class="fa-solid fa-camera upload-icon"></i>
-                    <label for="foto-hoja" class="upload-label">Capturar Hoja de Maíz</label>
-                    <input type="file" id="foto-hoja" accept="image/*" capture="environment">
-                </div>
-                
-                <button type="button" id="btn-analizar" class="btn btn-action">
-                    <i class="fa-solid fa-wand-magic-sparkles"></i> Analizar con IA
-                </button>
-                
-                <div id="resultado-box" class="result-area hidden"></div>
+            <div class="input-group">
+                <input
+                    type="email"
+                    id="reg-email"
+                    placeholder="Correo electrónico"
+                    required
+                >
             </div>
-        </section>
 
-    </main>
+            <div class="input-group">
+                <input
+                    type="password"
+                    id="reg-password"
+                    placeholder="Contraseña"
+                    required
+                >
+            </div>
 
-    <script src="script.js"></script>
+            <button
+                type="button"
+                id="btn-register"
+                class="btn btn-primary"
+            >
+                Crear Cuenta
+            </button>
+
+            <p class="switch-text">
+                ¿Ya tienes cuenta?
+                <a href="#" id="show-login">
+                    Inicia Sesión
+                </a>
+            </p>
+
+        </form>
+
+    </div>
+
+    <!-- LOGIN -->
+
+    <div class="card hidden" id="login-card">
+
+        <div class="card-header">
+            <h2>Iniciar Sesión</h2>
+        </div>
+
+        <form id="login-form">
+
+            <div class="input-group">
+                <input
+                    type="email"
+                    id="login-email"
+                    placeholder="Correo electrónico"
+                    required
+                >
+            </div>
+
+            <div class="input-group">
+                <input
+                    type="password"
+                    id="login-password"
+                    placeholder="Contraseña"
+                    required
+                >
+            </div>
+
+            <button
+                type="button"
+                id="btn-login"
+                class="btn btn-primary"
+            >
+                Entrar al Sistema
+            </button>
+
+            <p class="switch-text">
+                ¿No tienes cuenta?
+                <a href="#" id="show-register">
+                    Regístrate aquí
+                </a>
+            </p>
+
+        </form>
+
+    </div>
+
+</section>
+
+<!-- ================= DASHBOARD ================= -->
+
+<section
+    id="dashboard-section"
+    class="fade-in"
+    style="display:none;"
+>
+
+<div class="card dashboard-header">
+
+    <h2>
+        Panel de Control
+    </h2>
+
+    <button
+        type="button"
+        id="btn-logout"
+        class="btn-icon"
+    >
+        Salir
+    </button>
+
+</div>
+
+<div class="card analysis-card">
+
+    <div class="upload-area">
+
+        <label for="foto-hoja">
+
+            📷 Seleccionar hoja
+
+        </label>
+
+        <input
+            type="file"
+            id="foto-hoja"
+            accept="image/*"
+        >
+
+    </div>
+
+    <!-- PREVIEW IMAGEN -->
+
+    <img
+        id="preview-img"
+        style="
+            display:none;
+            max-width:300px;
+            margin-top:15px;
+            border-radius:10px;
+        "
+    >
+
+    <!-- BOTON ANALIZAR -->
+
+    <button
+        type="button"
+        id="btn-analizar"
+        class="btn btn-action"
+    >
+        Analizar con IA
+    </button>
+
+    <!-- RESULTADO -->
+
+    <div
+        id="resultado-box"
+        class="result-area"
+    >
+    </div>
+
+</div>
+
+</section>
+
+</main>
+
+<!-- SCRIPT SOLO UNA VEZ -->
+
+<script src="script.js"></script>
+
 </body>
 </html>
