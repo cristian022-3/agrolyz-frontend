@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Agrolyz — Diagnóstico de Maíz</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #f0f4f0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+    }
+    header {
+      text-align: center;
+      margin-bottom: 24px;
+    }
+    header h1 { color: #2d6a2d; font-size: 2rem; }
+    header p  { color: #555; font-size: 0.95rem; margin-top: 4px; }
+
+    .card {
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+      padding: 28px;
+      width: 100%;
+      max-width: 480px;
+    }
+
+    .zona-carga {
+      border: 2px dashed #aad4aa;
+      border-radius: 12px;
+      padding: 40px 20px;
+      text-align: center;
+      cursor: pointer;
+      transition: background 0.2s;
+      position: relative;
+    }
+    .zona-carga:hover { background: #f0fff0; }
+    .zona-carga input {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      cursor: pointer;
+      width: 100%;
+      height: 100%;
+    }
+    .zona-carga .icono { font-size: 2.5rem; }
+    .zona-carga p { color: #666; margin-top: 8px; font-size: 0.9rem; }
+
+    #preview {
+      width: 100%;
+      border-radius: 10px;
+      margin-top: 16px;
+      display: none;
+      max-height: 260px;
+      object-fit: cover;
+    }
+
+    button#btn-analizar {
+      width: 100%;
+      margin-top: 16px;
+      padding: 14px;
+      background: #2d6a2d;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: background 0.2s;
+      display: none;
+    }
+    button#btn-analizar:hover { background: #1f4f1f; }
+    button#btn-analizar:disabled { background: #aaa; cursor: not-allowed; }
+
+    #resultado { margin-top: 20px; display: none; }
+
+    .chip {
+      display: inline-block;
+      padding: 6px 16px;
+      border-radius: 20px;
+      font-weight: bold;
+      font-size: 1rem;
+      margin-bottom: 12px;
+    }
+    .chip.roya           { background: #ffe0e0; color: #c0392b; }
+    .chip.otra           { background: #fff3cd; color: #856404; }
+    .chip.sana           { background: #d4edda; color: #155724; }
+    .chip.invalido       { background: #e2e3e5; color: #383d41; }
+
+    .barra-contenedor { margin-bottom: 8px; }
+    .barra-label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.85rem;
+      color: #444;
+      margin-bottom: 4px;
+    }
+    .barra-fondo {
+      background: #e9ecef;
+      border-radius: 6px;
+      height: 10px;
+      overflow: hidden;
+    }
+    .barra-relleno {
+      height: 100%;
+      border-radius: 6px;
+      transition: width 0.6s ease;
+    }
+    .barra-relleno.roya  { background: #e74c3c; }
+    .barra-relleno.otra  { background: #f39c12; }
+    .barra-relleno.sana  { background: #27ae60; }
+
+    .mensaje-rechazo {
+      background: #fff3cd;
+      border-left: 4px solid #ffc107;
+      border-radius: 8px;
+      padding: 12px 16px;
+      color: #856404;
+      font-size: 0.9rem;
+    }
+
+    .spinner {
+      display: none;
+      text-align: center;
+      padding: 16px;
+      color: #2d6a2d;
+      font-size: 0.95rem;
+    }
+
+    footer {
+      margin-top: 32px;
+      color: #aaa;
+      font-size: 0.8rem;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>🌽 Agrolyz</h1>
+  <p>Diagnóstico inteligente de enfermedades en maíz</p>
+</header>
+
+<div class="card">
+  <div class="zona-carga" id="zona">
+    <input type="file" id="input-imagen" accept="image/*" capture="environment">
+    <div class="icono">📷</div>
+    <p>Toca para tomar foto o subir imagen</p>
+  </div>
+
+  <img id="preview" alt="Vista previa">
+  <button id="btn-analizar">🔍 Analizar hoja</button>
+
+  <div class="spinner" id="spinner">⏳ Analizando imagen...</div>
+
+  <div id="resultado"></div>
+</div>
+
+<footer>Agrolyz · Universidad de Nariño · Ipiales</footer>
+
+<script>
+  // ⚠️ Cambia esta URL por la de tu API en Render cuando esté desplegada
+  const API_URL = "https://TU-API.onrender.com/predecir";
+
+  const inputImagen  = document.getElementById('input-imagen');
+  const preview      = document.getElementById('preview');
+  const btnAnalizar  = document.getElementById('btn-analizar');
+  const spinner      = document.getElementById('spinner');
+  const resultado    = document.getElementById('resultado');
+  let   archivoActual = null;
+
+  inputImagen.addEventListener('change', (e) => {
+    archivoActual = e.target.files[0];
+    if (!archivoActual) return;
+
+    const url = URL.createObjectURL(archivoActual);
+    preview.src     = url;
+    preview.style.display = 'block';
+    btnAnalizar.style.display = 'block';
+    resultado.style.display = 'none';
+    resultado.innerHTML = '';
+  });
+
+  btnAnalizar.addEventListener('click', async () => {
+    if (!archivoActual) return;
+
+    btnAnalizar.disabled = true;
+    spinner.style.display = 'block';
+    resultado.style.display = 'none';
+
+    const formData = new FormData();
+    formData.append('imagen', archivoActual);
+
+    try {
+      const res  = await fetch(API_URL, { method: 'POST', body: formData });
+      const data = await res.json();
+      mostrarResultado(data);
+    } catch (err) {
+      resultado.innerHTML = `
+        <div class="mensaje-rechazo">
+          ❌ Error al conectar con el servidor. Verifica tu conexión.
+        </div>`;
+      resultado.style.display = 'block';
+    } finally {
+      btnAnalizar.disabled = false;
+      spinner.style.display = 'none';
+    }
+  });
+
+  function mostrarResultado(data) {
+    resultado.style.display = 'block';
+
+    if (!data.valido) {
+      resultado.innerHTML = `
+        <span class="chip invalido">⚠️ Imagen no válida</span>
+        <div class="mensaje-rechazo">
+          ${data.mensaje}<br><br>
+          <strong>Sugerencia:</strong> ${data.sugerencia}
+        </div>`;
+      return;
+    }
+
+    const claseCSS = {
+      'Roya':            'roya',
+      'Otra_Enfermedad': 'otra',
+      'Sana':            'sana'
+    }[data.diagnostico] || 'invalido';
+
+    const emoji = {
+      'Roya':            '🔴',
+      'Otra_Enfermedad': '🟡',
+      'Sana':            '🟢'
+    }[data.diagnostico] || '❓';
+
+    const desglose = data.desglose;
+
+    resultado.innerHTML = `
+      <span class="chip ${claseCSS}">
+        ${emoji} ${data.diagnostico.replace('_', ' ')} — ${data.confianza}%
+      </span>
+      <div class="barra-contenedor">
+        <div class="barra-label"><span>Roya</span><span>${desglose.Roya}%</span></div>
+        <div class="barra-fondo">
+          <div class="barra-relleno roya" style="width:${desglose.Roya}%"></div>
+        </div>
+      </div>
+      <div class="barra-contenedor">
+        <div class="barra-label"><span>Otra Enfermedad</span><span>${desglose.Otra_Enfermedad}%</span></div>
+        <div class="barra-fondo">
+          <div class="barra-relleno otra" style="width:${desglose.Otra_Enfermedad}%"></div>
+        </div>
+      </div>
+      <div class="barra-contenedor">
+        <div class="barra-label"><span>Sana</span><span>${desglose.Sana}%</span></div>
+        <div class="barra-fondo">
+          <div class="barra-relleno sana" style="width:${desglose.Sana}%"></div>
+        </div>
+      </div>`;
+  }
+</script>
+</body>
+</html>
