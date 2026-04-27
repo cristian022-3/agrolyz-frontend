@@ -1,4 +1,4 @@
-const API_URL = "http://127.0.0.1:8000/predecir";
+const API_URL = "https://agrolyz-backend-production.up.railway.app/predecir";
 
 // ================================
 // TODO SE EJECUTA CUANDO CARGA EL HTML
